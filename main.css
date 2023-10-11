@@ -1,0 +1,59 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    overflow: hidden;
+    background-color: #000;
+}
+
+section {
+    height: 100vh;
+    width: 100%;
+}
+
+canvas {
+    width: 100%;
+    height: 100vh;
+    opacity: 0;
+}
+
+section {
+    position: relative;
+}
+
+.chats {
+    pointer-events: none;
+}
+
+.avatar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: 50px;
+}
+
+.avatar img {
+    width: 100%;
+    height: auto;
+}
+
+.bubble {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 16px 4px;
+    border: 1px solid var(--neutral-darker, #343434);
+    background: var(--Translucent-Cards-background, rgba(31, 31, 23, 0.80));
+    backdrop-filter: blur(1.5px);
+    color: #BFBFBF;
+    padding: 16px;
+    width: 270px;
+    font-size: 14px;
+}
