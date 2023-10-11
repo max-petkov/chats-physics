@@ -27,6 +27,7 @@ section {
 
 .chats {
     pointer-events: none;
+    /* opacity: 0; */
 }
 
 .avatar {
@@ -54,6 +55,17 @@ section {
     backdrop-filter: blur(1.5px);
     color: #BFBFBF;
     padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 270px;
     font-size: 14px;
+}
+
+.chats-container:nth-child(2) .bubble {
+    width: 280px;
+}
+
+.chats-container:nth-child(3) .bubble {
+    width: 220px;
 }

@@ -1,4 +1,4 @@
-// TODO Create a chain between circle and rectangle -> Maybe use Matter.Composites
+// TODO Create a chain between circle and rectangle -> Maybe use Matter.Matter.Composites
 // https://brm.io/matter-js/docs/classes/Composites.html
 // https://brm.io/matter-js/demo/#constraints
 // https://github.com/liabru/matter-js/blob/master/examples/constraints.js
@@ -7,14 +7,13 @@
 // 1. Add resize event
 // 2. Add ScrollEvent (maybe with GSAP Observer on scroll)
 
-
 function CustomerExperience() {
   this.element = document.querySelector("section");
   this.width = this.element.getBoundingClientRect().width;
   this.height = this.element.getBoundingClientRect().height;
 
   this.engine = Matter.Engine.create();
-  this.engine.gravity.y = 0.3
+  this.engine.gravity.y = 0.5
   this.world = this.engine.world;
   this.composite = Matter.Composite;
   this.composites = Matter.Composites;
@@ -32,8 +31,7 @@ function CustomerExperience() {
       width: this.width,
       height: this.height,
       showAngleIndicator: true,
-      // wireframes: false,
-      // background: "#ff0000",
+      wireframes: false,
     },
   });
 
@@ -46,41 +44,70 @@ function CustomerExperience() {
 
   this.events.on(this.runner, "tick", function(e) {
     const bodies = this.composite.allBodies(this.world).filter(body => body.label !== "wall");
-    const rect = bodies[0];
-    const circ = bodies[1];
-    
-    const avatar = document.querySelector(".avatar");
-    const bubble = document.querySelector(".bubble");
 
-    bubble.style.top = rect.position.y + "px";
-    bubble.style.left = rect.position.x + "px";
-    bubble.style.transform = `translate(-50%, -50%) rotate(${rect.angle}rad)`;
+    bodies.forEach(body => {
+      const avatar = document.querySelector(`[data-avatar="${body.label}"]`);
+      const bubble = document.querySelector(`[data-bubble="${body.label}"]`);
 
-    avatar.style.top = circ.position.y + "px";
-    avatar.style.left = circ.position.x + "px";
-    avatar.style.transform = `translate(-50%, -50%) rotate(${circ.angle}rad)`;
+      if(avatar) {
+        avatar.style.top = body.position.y + "px";
+        avatar.style.left = body.position.x + "px";
+        avatar.style.transform = `translate(-50%, -50%) rotate(${body.angle}rad)`;
+      }
 
-
+      if(bubble) {
+        bubble.style.top = body.position.y + "px";
+        bubble.style.left = body.position.x + "px";
+        bubble.style.transform = `translate(-50%, -50%) rotate(${body.angle}rad)`;
+      }
+    });
   }.bind(this))
 }
 
 CustomerExperience.prototype.createChats = function() {
-  const x = 200;
-  const y = 400;
-  const w = 270;
-  const h = 75.2;
-  const r = 20;
-  const gap = 8;
+  const chats = document.querySelectorAll(".chats-container");
 
-  const rect = this.bodies.rectangle(x, y, w, h, {label: "rect", chamfer: {radius: [16,16,16,4]}});
-  const circ = this.bodies.circle(Math.abs(x - (w / 2) - (r + gap)), y, r, {label: "circ"});
+  chats.forEach(chat => {
+    const group = this.body.nextGroup(true);
+    const avatar = chat.firstElementChild;
+    const bubble = chat.lastElementChild;
 
-  const constraint = Matter.Constraint.create({
-      bodyA: rect,
-      bodyB: circ,
+    const borderWidth = parseFloat(getStyle(bubble, "border-width").split("px").join("")) * 2;
+    const padding = parseFloat(getStyle(bubble, "padding").split("px").join("")) / 2;
+    const w = bubble.scrollWidth + borderWidth;
+    const h = bubble.scrollHeight + borderWidth + padding;
+    const r = parseFloat(avatar.getBoundingClientRect().height) / 2;
+    const gap = 8;
+
+    const x = randomNumber(w - (r * 2) - gap, window.innerWidth - (w - (r * 2) - gap));
+    const y = h;
+    
+    const rect = this.bodies.rectangle(x, y, w, h, {
+      label: bubble.getAttribute("data-bubble"), 
+      chamfer: {radius: [16,16,16,4]},
+      collisionFilter: {
+        group: group
+      },
+      friction: 0.3
+    });
+
+    const circ = this.bodies.circle(0, 0, r, {
+      label: avatar.getAttribute("data-avatar"), 
+      collisionFilter: {
+        group: group
+      },
+      friction: 0.3
+    });
+  
+    const constraint = Matter.Constraint.create({
+        bodyA: circ,
+        bodyB: rect,
+        pointB: { x: -1 * (w / 2) - (r + gap), y: (h / 2) - r },
+        length: 0
+    });
+  
+    Matter.Composite.add(this.world, [rect, circ, constraint]);
   });
-
-  Matter.Composite.add(this.world, [rect, circ, constraint]);
 }
 
 CustomerExperience.prototype.createWalls = function() {
@@ -103,7 +130,6 @@ CustomerExperience.prototype.mouseControl = function() {
       mouse: mouse,
       constraint: {
           angularStiffness: -1,
-          stiffness: 1,
           render: {
               visible: false
           }
@@ -112,6 +138,14 @@ CustomerExperience.prototype.mouseControl = function() {
 
   this.composite.add(this.world, mouseConstraint);
   this.render.mouse = mouse;
+}
+
+function getStyle(el, style) {
+  return getComputedStyle(el).getPropertyValue(style);
+}
+
+function randomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // Invoke
